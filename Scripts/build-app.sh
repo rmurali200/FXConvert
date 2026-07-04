@@ -25,6 +25,13 @@ cp ".build/$BUILD_CONFIG/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/$APP_NAME"
 cp "Resources/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 cp "Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 
+# Ad-hoc sign the fully assembled bundle (not just the executable, which the Swift
+# compiler already ad-hoc-signs on its own). Skipping this leaves the bundle's
+# CodeResources seal missing/stale, which Gatekeeper rejects as "damaged" once the
+# app is quarantined (e.g. via Homebrew) rather than the older, bypassable
+# "unidentified developer" warning.
+codesign --force --deep --sign - "$APP_BUNDLE"
+
 touch "$APP_BUNDLE"
 
 echo "Built $APP_BUNDLE"
