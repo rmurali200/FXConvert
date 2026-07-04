@@ -30,7 +30,7 @@ open FXConvert.app
 
 This builds a release binary via Swift Package Manager and wraps it into a standard `.app` bundle. By default it deletes the `.build/` compiler cache once the app is packaged, to keep the working tree clean — pass `--keep-cache` (`./Scripts/build-app.sh --keep-cache`) to keep it around for faster incremental rebuilds while iterating.
 
-The app is unsigned, so on first launch macOS Gatekeeper may block it — right-click (or Control-click) `FXConvert.app` and choose **Open**, or approve it under **System Settings → Privacy & Security**.
+The app is unsigned, so on first launch macOS Gatekeeper will block it — see [First launch: getting past Gatekeeper](#first-launch-getting-past-gatekeeper) below.
 
 To have it available like any other app, drag `FXConvert.app` into `/Applications`.
 
@@ -41,7 +41,19 @@ brew tap rmurali200/fxconvert
 brew install --cask fxconvert
 ```
 
-This installs from a personal Homebrew tap (not the official `homebrew-cask` repo — see [Distribution](#distribution) below). The app is still unsigned, so the same Gatekeeper right-click-to-open step applies on first launch.
+This installs from a personal Homebrew tap (not the official `homebrew-cask` repo — see [Distribution](#distribution) below). The app is still unsigned, so the same Gatekeeper approval step applies on first launch.
+
+## First launch: getting past Gatekeeper
+
+However you installed it, opening `FXConvert.app` the first time shows *"Apple could not verify this app is free of malware"* with only **Done** and **Move to Trash** as options — there's no inline "Open" button, unlike older macOS versions.
+
+1. Click **Done** (not Move to Trash).
+2. Open **System Settings → Privacy & Security**.
+3. Scroll to the **Security** section — you'll see *"'FXConvert' was blocked to protect your Mac"* with an **Open Anyway** button.
+4. Click **Open Anyway**, then confirm with your password/Touch ID if prompted.
+5. One more confirmation dialog may appear — click **Open**.
+
+This is only needed once; it launches normally after that.
 
 ## Usage
 
@@ -80,7 +92,7 @@ Exchange rates come from [open.er-api.com](https://www.exchangerate-api.com/docs
 FXConvert is unsigned and unnotarized (no Apple Developer Program membership yet), so:
 
 - It's distributed via a personal Homebrew tap ([homebrew-fxconvert](https://github.com/rmurali200/homebrew-fxconvert)), not the official `homebrew-cask` repo — hence the `brew tap` step above rather than a bare `brew install --cask fxconvert`.
-- Gatekeeper will show an "unidentified developer" warning on first launch, however you install it. Right-click → Open (or approve it in System Settings → Privacy & Security) once, and it launches normally after that.
+- Gatekeeper will block first launch, however you install it — see [First launch: getting past Gatekeeper](#first-launch-getting-past-gatekeeper) above for the exact steps (it's an extra System Settings step now, not a simple right-click).
 
 ## Roadmap
 
