@@ -1,4 +1,6 @@
 .build/
 .swiftpm/
 FXConvert.app/
+FXConvert.zip
+Resources/AppIcon.iconset/
 .DS_Store

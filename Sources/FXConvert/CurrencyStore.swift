@@ -3,8 +3,6 @@ import SwiftUI
 
 @MainActor
 final class CurrencyStore: ObservableObject {
-    private static let staleAfter: TimeInterval = 4 * 3600
-
     @Published var rates: [String: Double] = [:]
     @Published var lastUpdated: Date?
     @Published var isOffline = false
@@ -12,9 +10,35 @@ final class CurrencyStore: ObservableObject {
     @AppStorage("amountText") var amountText: String = "1"
     @AppStorage("fromCurrency") var fromCurrency: String = "USD"
     @AppStorage("toCurrency") var toCurrency: String = "EUR"
+    @AppStorage("favoriteCurrencies") private var favoriteCurrenciesRaw: String = "USD,EUR,GBP,JPY,INR,CAD,AUD,CHF,CNY"
+    @AppStorage("refreshIntervalHours") var refreshIntervalHours: Double = 4
+    @AppStorage("decimalPrecision") var decimalPrecision: Int = 4
 
     var sortedCurrencyCodes: [String] {
         rates.keys.sorted()
+    }
+
+    /// Ordered, de-duplicated list of currency codes the user has starred as favorites.
+    /// Persisted as a comma-joined string since ISO 4217 codes never contain commas.
+    var favoriteCurrencyCodes: [String] {
+        get {
+            favoriteCurrenciesRaw.split(separator: ",").map(String.init)
+        }
+        set {
+            var seen = Set<String>()
+            let deduped = newValue.filter { seen.insert($0).inserted }
+            let removed = Set(favoriteCurrencyCodes).subtracting(deduped)
+            favoriteCurrenciesRaw = deduped.joined(separator: ",")
+
+            // If the currently-selected from/to currency was just unfavorited, fall back to
+            // whatever favorites remain so the Picker binding never points at a removed option.
+            if removed.contains(fromCurrency) {
+                fromCurrency = deduped.first(where: { $0 != toCurrency }) ?? deduped.first ?? fromCurrency
+            }
+            if removed.contains(toCurrency) {
+                toCurrency = deduped.first(where: { $0 != fromCurrency }) ?? deduped.first ?? toCurrency
+            }
+        }
     }
 
     var amount: Double {
@@ -22,11 +46,7 @@ final class CurrencyStore: ObservableObject {
     }
 
     var result: Double? {
-        guard let fromRate = rates[fromCurrency], let toRate = rates[toCurrency], fromRate > 0 else {
-            return nil
-        }
-        // rates are all relative to a common base, so cross-rate = amount * (toRate / fromRate)
-        return amount * (toRate / fromRate)
+        ConversionMath.crossRate(amount: amount, fromRate: rates[fromCurrency], toRate: rates[toCurrency])
     }
 
     init() {
@@ -42,7 +62,7 @@ final class CurrencyStore: ObservableObject {
     }
 
     func refreshIfStale() async {
-        if let lastUpdated, Date().timeIntervalSince(lastUpdated) < Self.staleAfter {
+        if let lastUpdated, Date().timeIntervalSince(lastUpdated) < refreshIntervalHours * 3600 {
             return
         }
         await refresh()
@@ -54,7 +74,7 @@ final class CurrencyStore: ObservableObject {
             rates = response.rates
             lastUpdated = Date()
             isOffline = false
-            RatesCache.save(CachedRates(base: response.base, rates: response.rates, fetchedAt: lastUpdated!))
+            RatesCache.save(CachedRates(base: response.base_code, rates: response.rates, fetchedAt: lastUpdated!))
         } catch {
             // Keep whatever rates are already cached/loaded; just flag that we're stale.
             isOffline = true

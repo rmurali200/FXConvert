@@ -5,14 +5,18 @@ A tiny, native macOS menu bar app for quick currency conversion. Click the icon,
 ## Features
 
 - Lives in the menu bar only (no Dock icon, no app switcher clutter)
-- Live exchange rates, cached locally so it still works offline
+- Live exchange rates across ~166 currencies, cached locally so it still works offline
+- A configurable favorites list keeps the currency pickers short and relevant
+- Copy the converted result to the clipboard in one click
+- Accepts both `.` and `,` as a decimal separator
+- Preferences pane: manage favorites, refresh interval, decimal precision, and Launch at Login
 - Remembers your last-used amount and currency pair between launches
 - Zero third-party dependencies — pure SwiftUI + Foundation + AppKit
 - No Xcode.app required to build — just the Swift toolchain
 
 ## Requirements
 
-- macOS 13 (Ventura) or later
+- macOS 14 (Sonoma) or later
 - Swift toolchain (Xcode Command Line Tools are enough — full Xcode.app is not required)
 
 ## Installing from source
@@ -28,36 +32,58 @@ This builds a release binary via Swift Package Manager and wraps it into a stand
 
 To have it available like any other app, drag `FXConvert.app` into `/Applications`.
 
+## Installing via Homebrew
+
+```bash
+brew tap rmurali200/fxconvert
+brew install --cask fxconvert
+```
+
+This installs from a personal Homebrew tap (not the official `homebrew-cask` repo — see [Distribution](#distribution) below). The app is still unsigned, so the same Gatekeeper right-click-to-open step applies on first launch.
+
 ## Usage
 
 - Click the `$` icon in the menu bar to open the converter.
-- Type an amount, pick the "from" and "to" currencies from the dropdowns.
-- Use the swap button to flip the two currencies.
+- Type an amount, pick the "from" and "to" currencies from the dropdowns (favorites only — manage the full list from Preferences).
+- Use the swap button to flip the two currencies, or the copy button to copy the result.
 - The status line at the bottom shows when rates were last updated, or "Offline" if the last refresh failed (cached rates are still used).
-- Click **Refresh** to force a re-fetch.
+- Click **Refresh** to force a re-fetch, or the gear icon to open Preferences.
 
 ## How it works
 
 | File | Purpose |
 |---|---|
-| `Package.swift` | Swift Package Manager manifest — single executable target, no dependencies |
-| `Sources/FXConvert/FXConvertApp.swift` | App entry point; sets up the `MenuBarExtra` scene and menu bar icon |
-| `Sources/FXConvert/CurrencyStore.swift` | App state and conversion math; persists last-used pair via `@AppStorage` |
+| `Package.swift` | Swift Package Manager manifest — executable target + test target, no third-party dependencies |
+| `Sources/FXConvert/FXConvertApp.swift` | App entry point; sets up the `MenuBarExtra` and `Settings` scenes and the menu bar icon |
+| `Sources/FXConvert/CurrencyStore.swift` | App state: rates, favorites, preferences, conversion inputs; persists via `@AppStorage` |
+| `Sources/FXConvert/ConversionMath.swift` | Pure cross-rate math and amount-input filtering, covered by unit tests |
 | `Sources/FXConvert/RatesService.swift` | Fetches live rates from the exchange rate API |
 | `Sources/FXConvert/RatesCache.swift` | Local JSON cache so the app works offline |
 | `Sources/FXConvert/ConverterView.swift` | The popover UI |
+| `Sources/FXConvert/PreferencesView.swift` | The Preferences window (General + Favorites tabs) |
+| `Sources/FXConvert/LaunchAtLoginManager.swift` | Wraps `SMAppService` for the Launch at Login toggle |
+| `Tests/FXConvertTests/` | Unit tests for `ConversionMath`, using Swift Testing |
 | `Scripts/build-app.sh` | Builds and packages the `.app` bundle without needing Xcode.app |
+| `Scripts/generate-icon.swift` | Regenerates the app icon from the menu bar's SF Symbol motif |
+| `Scripts/package-release.sh` | Packages a versioned, zipped release artifact for the Homebrew cask |
 
 Rates are fetched relative to a single base currency (USD), so converting between any two currencies is a cross-rate calculation (`amount * (toRate / fromRate)`) rather than a separate API call per pair.
 
 ## Rate data
 
-Exchange rates come from [frankfurter.app](https://www.frankfurter.app), a free, keyless API backed by European Central Bank reference rates. These update once per business day (~4pm CET) — good for everyday conversions, but not a live/intraday market feed. Cached rates are used automatically whenever a refresh fails (e.g. offline).
+Exchange rates come from [open.er-api.com](https://www.exchangerate-api.com/docs/free), a free, keyless API covering ~166 currencies. Rates update roughly once a day — good for everyday conversions, but not a live/intraday market feed. Cached rates are used automatically whenever a refresh fails (e.g. offline).
+
+## Distribution
+
+FXConvert is unsigned and unnotarized (no Apple Developer Program membership yet), so:
+
+- It's distributed via a personal Homebrew tap ([homebrew-fxconvert](https://github.com/rmurali200/homebrew-fxconvert)), not the official `homebrew-cask` repo — hence the `brew tap` step above rather than a bare `brew install --cask fxconvert`.
+- Gatekeeper will show an "unidentified developer" warning on first launch, however you install it. Right-click → Open (or approve it in System Settings → Privacy & Security) once, and it launches normally after that.
 
 ## Roadmap
 
 - Swap in a more frequently-updated (hourly) rate provider
-- Possible future paid distribution on the Mac App Store
+- Possible future code-signed/notarized release and official Mac App Store distribution
 
 ## Contributing
 

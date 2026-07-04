@@ -22,5 +22,10 @@ struct FXConvertApp: App {
             Image(nsImage: Self.statusIcon)
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            PreferencesView()
+                .environmentObject(store)
+        }
     }
 }
