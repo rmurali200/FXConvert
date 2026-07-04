@@ -6,6 +6,7 @@ final class CurrencyStore: ObservableObject {
     @Published var rates: [String: Double] = [:]
     @Published var lastUpdated: Date?
     @Published var isOffline = false
+    @Published var preferencesTab: PreferencesTab = .general
 
     @AppStorage("amountText") var amountText: String = "1"
     @AppStorage("fromCurrency") var fromCurrency: String = "USD"

@@ -23,9 +23,14 @@ struct FXConvertApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Settings {
+        // A dedicated Window (not the Settings scene / SettingsLink) — SettingsLink is
+        // unreliable from a MenuBarExtra popover on an accessory (LSUIElement) app, since
+        // the app often fails to activate and bring the window forward. Window + an explicit
+        // NSApp.activate before openWindow (see ConverterView) works reliably instead.
+        Window("Preferences", id: "preferences") {
             PreferencesView()
                 .environmentObject(store)
         }
+        .windowResizability(.contentSize)
     }
 }

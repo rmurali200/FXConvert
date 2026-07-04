@@ -28,7 +28,9 @@ cd FXConvert
 open FXConvert.app
 ```
 
-This builds a release binary via Swift Package Manager and wraps it into a standard `.app` bundle. The app is unsigned, so on first launch macOS Gatekeeper may block it — right-click (or Control-click) `FXConvert.app` and choose **Open**, or approve it under **System Settings → Privacy & Security**.
+This builds a release binary via Swift Package Manager and wraps it into a standard `.app` bundle. By default it deletes the `.build/` compiler cache once the app is packaged, to keep the working tree clean — pass `--keep-cache` (`./Scripts/build-app.sh --keep-cache`) to keep it around for faster incremental rebuilds while iterating.
+
+The app is unsigned, so on first launch macOS Gatekeeper may block it — right-click (or Control-click) `FXConvert.app` and choose **Open**, or approve it under **System Settings → Privacy & Security**.
 
 To have it available like any other app, drag `FXConvert.app` into `/Applications`.
 

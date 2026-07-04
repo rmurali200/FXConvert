@@ -3,6 +3,7 @@ import AppKit
 
 struct ConverterView: View {
     @EnvironmentObject var store: CurrencyStore
+    @Environment(\.openWindow) private var openWindow
     @State private var didCopy = false
 
     private var resultFormatter: NumberFormatter {
@@ -21,15 +22,15 @@ struct ConverterView: View {
     }()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             Text("FXConvert")
                 .font(.headline)
 
-            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 12) {
+            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 8) {
                 GridRow {
                     TextField("Amount", text: $store.amountText)
                         .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
+                        .frame(width: 88)
                         .onChange(of: store.amountText) { _, newValue in
                             let filtered = ConversionMath.filterAmountInput(newValue)
                             if filtered != newValue {
@@ -43,7 +44,15 @@ struct ConverterView: View {
                         }
                     }
                     .labelsHidden()
-                    .frame(width: 90)
+                    .frame(width: 78)
+
+                    Button {
+                        openPreferences(tab: .favorites)
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(.borderless)
+                    .help("Add currencies to the pickers")
                 }
 
                 GridRow {
@@ -59,7 +68,7 @@ struct ConverterView: View {
                     Text(resultText)
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .frame(width: 100, alignment: .leading)
+                        .frame(width: 88, alignment: .leading)
 
                     Picker("", selection: $store.toCurrency) {
                         ForEach(store.favoriteCurrencyCodes.sorted(), id: \.self) { code in
@@ -67,7 +76,7 @@ struct ConverterView: View {
                         }
                     }
                     .labelsHidden()
-                    .frame(width: 90)
+                    .frame(width: 78)
 
                     Button {
                         copyResultToClipboard()
@@ -97,14 +106,16 @@ struct ConverterView: View {
                 }
                 .font(.caption)
 
-                SettingsLink {
+                Button {
+                    openPreferences(tab: .general)
+                } label: {
                     Image(systemName: "gearshape")
                 }
                 .buttonStyle(.borderless)
             }
         }
-        .padding()
-        .frame(width: 260)
+        .padding(12)
+        .frame(width: 240)
     }
 
     private var resultText: String {
@@ -116,6 +127,12 @@ struct ConverterView: View {
         guard let lastUpdated = store.lastUpdated else { return "No rates yet" }
         let prefix = store.isOffline ? "Offline · last updated " : "Updated "
         return prefix + Self.timeFormatter.string(from: lastUpdated)
+    }
+
+    private func openPreferences(tab: PreferencesTab) {
+        store.preferencesTab = tab
+        NSApp.activate(ignoringOtherApps: true)
+        openWindow(id: "preferences")
     }
 
     private func copyResultToClipboard() {

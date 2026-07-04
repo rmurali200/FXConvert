@@ -1,15 +1,22 @@
 import SwiftUI
 
+enum PreferencesTab: Hashable {
+    case general
+    case favorites
+}
+
 struct PreferencesView: View {
     @EnvironmentObject var store: CurrencyStore
     @StateObject private var launchAtLogin = LaunchAtLoginManager()
 
     var body: some View {
-        TabView {
+        TabView(selection: $store.preferencesTab) {
             GeneralPreferencesTab(store: store, launchAtLogin: launchAtLogin)
                 .tabItem { Label("General", systemImage: "gearshape") }
+                .tag(PreferencesTab.general)
             FavoritesPreferencesTab(store: store)
                 .tabItem { Label("Favorites", systemImage: "star") }
+                .tag(PreferencesTab.favorites)
         }
         .frame(width: 380, height: 320)
         .onAppear { launchAtLogin.refreshStatus() }
