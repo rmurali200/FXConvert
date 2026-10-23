@@ -3,6 +3,7 @@ import AppKit
 
 @main
 struct FXConvertApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = CurrencyStore()
 
     private static let statusIcon: NSImage = {
@@ -32,5 +33,20 @@ struct FXConvertApp: App {
                 .environmentObject(store)
         }
         .windowResizability(.contentSize)
+    }
+}
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// Only one copy may run at a time. A second launch (e.g. the build-folder copy and the
+    /// /Applications copy, which share a bundle identifier) would otherwise add a second
+    /// menu bar icon. The newcomer hands off to the instance already running and exits.
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        guard let bundleID = Bundle.main.bundleIdentifier else { return }
+        let others = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+            .filter { $0 != NSRunningApplication.current }
+        if let existing = others.first {
+            existing.activate()
+            exit(0)
+        }
     }
 }

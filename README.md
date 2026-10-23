@@ -11,6 +11,7 @@ A tiny, native macOS menu bar app for quick currency conversion. Click the icon,
 - Accepts both `.` and `,` as a decimal separator
 - Preferences pane: manage favorites, refresh interval, decimal precision, and Launch at Login
 - Remembers your last-used amount and currency pair between launches
+- Quit from the popover's power button or ⌘Q; only one copy runs at a time
 - Zero third-party dependencies — pure SwiftUI + Foundation + AppKit
 - No Xcode.app required to build — just the Swift toolchain
 

@@ -112,6 +112,15 @@ struct ConverterView: View {
                     Image(systemName: "gearshape")
                 }
                 .buttonStyle(.borderless)
+
+                Button {
+                    NSApp.terminate(nil)
+                } label: {
+                    Image(systemName: "power")
+                }
+                .buttonStyle(.borderless)
+                .keyboardShortcut("q", modifiers: .command)
+                .help("Quit FXConvert (⌘Q)")
             }
         }
         .padding(12)
